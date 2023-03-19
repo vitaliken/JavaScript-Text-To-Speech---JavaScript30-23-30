@@ -24,8 +24,7 @@
         <label for="pitch">Pitch:</label>
         <input name="pitch" type="range" min="0" max="2" value="0.1" step="0.1">
 
-        <textarea
-            name="text">Hello! Welcome. Write whatever you want in the text-area and i will speak it in my robot voice, that is my primary objective. i would've shrugged if i could, but hey, computer problems. </textarea>
+        <textarea name="text">Привет! Я изучаю JS. Hello! How are you?</textarea>
 
         <button id="stop">Stop!</button>
         <button id="speak">Speak</button>
@@ -35,13 +34,50 @@
     <script>
 
         const msg = new SpeechSynthesisUtterance();
-        let voices = [];//🏋◽
+        let voices = [];
         const voicesDropdown = document.querySelector('[name="voice"]');
         const options = document.querySelectorAll('[type="range"], [name="text"]');
         const speakButton = document.querySelector('#speak');
         const stopButton = document.querySelector('#stop');
+        msg.text = document.querySelector('[name="text"]').value;
 
+        //получаем список доступных голосов
+        function populateVoices() {
+            voices = this.getVoices();
+            console.log(voices);
+            voicesDropdown.innerHTML = voices
+                .filter(voice => voice.lang.includes('ru'))//фильтр по языкам
+                .map(voice => `<option value="${voice.name}">${voice.name} (${voice.lang})</option>`)
+                .join('');
+        }
 
+        //устанавливаем выбранные голос из списка
+        function setVoice() {
+            console.log('change voice');
+            msg.voice = voices.find(voice => voice.name === this.value);
+            toggle();
+        }
+
+        //срабатывает когда мы меняем голос
+        function toggle(startOver = true) {
+            speechSynthesis.cancel();
+            if (startOver) {
+                speechSynthesis.speak(msg);
+            }
+        }
+
+        //изменение ползунков
+        function setOption() {
+            console.log(this.name, this.value);
+            msg[this.name] = this.value;
+            toggle();
+        }
+
+        speechSynthesis.addEventListener('voiceschanged', populateVoices);
+        voicesDropdown.addEventListener('change', setVoice);
+        options.forEach(option => option.addEventListener('change', setOption));
+        speakButton.addEventListener('click', toggle);
+        stopButton.addEventListener('click', () => toggle(false));//для первого запуска с false
 
     </script>
 
